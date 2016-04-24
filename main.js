@@ -14,6 +14,16 @@ function sortSearchArray (data) {
     return details;
 }
 
+function setHide(data) {
+    // tell the last 5 that they should show
+    return data.splice(data.length -5, 5)
+        .map((danceItem) => {
+            return {
+                ...danceItem,
+                shouldShow: true
+            }
+    }).concat(data)
+}
 
 var Main = React.createClass({
 
@@ -28,13 +38,17 @@ var Main = React.createClass({
     loadDetails: function (amountToLoad) {
         $.getJSON(wikipediaSearchString(amountToLoad))
             .then(sortSearchArray)
+            .then(setHide)
             .then((sortedData) => {
                 this.setState({data: sortedData})
             })
     }, render: function () {
 
         return (<div className="main">
-            {this.state.data.map(function (item) {
+            {this.state.data
+                // filter out the ones that should not be shown
+                .filter(item => item.shouldShow)
+                .map(function (item) {
                 return (
                     <ul className="wikipedia-info">
                         <li className="resolved-search-term">{item.resolvedSearch}</li>
@@ -43,9 +57,14 @@ var Main = React.createClass({
                     </ul>
                 )
             })}
-            <button className="load-more"
-                    onClick={() => {this.loadDetails(this.state.data.length + 5)}}> load more
-            </button>
+
+            { /* Hide button when there is no more data */
+                this.state.data.length !== 50 ?
+                <button className="load-more"
+                        onClick={() => {this.loadDetails(this.state.data.length + 5)}}> load more
+                </button> : null
+            }
+
         </div>)
 
     }
